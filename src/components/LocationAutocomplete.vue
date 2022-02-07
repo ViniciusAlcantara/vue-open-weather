@@ -1,17 +1,16 @@
 <template>
     <q-input
-        outlined
-        square
-        color="secondary"
-        type="text"
-        required
-        v-model="location"
-        class="autocomplete-adress"
-        minlength="3"
-        :label="label"
-        ref="autocomplete"
-        :hint="hint"
-        lazy-rules
+      outlined
+      color="primary"
+      type="text"
+      required
+      v-model="location"
+      class="autocomplete-adress"
+      minlength="3"
+      :label="label"
+      ref="autocomplete"
+      :hint="hint"
+      lazy-rules
     />
 </template>
 

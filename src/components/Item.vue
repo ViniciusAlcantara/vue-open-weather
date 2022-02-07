@@ -1,9 +1,9 @@
 <template>
-    <q-item class="q-my-sm" v-ripple>
+    <q-item v-ripple dense>
         <q-item-section avatar>
             <q-avatar rounded text-color="white" v-if="image">
                 <q-img
-                    src="http://openweathermap.org/img/wn/10d@2x.png"
+                    :src="icon"
                 />
             </q-avatar>
             <q-avatar :icon="icon" v-else />

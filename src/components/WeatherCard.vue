@@ -1,19 +1,19 @@
 <template>
     <q-card>
       <q-card-section>
-        <q-item class="q-my-sm" v-ripple>
+        <q-item v-ripple>
           <q-item-section>
-            <q-item-label >San Francisco</q-item-label>
-            <q-item-label caption lines="1"> Mostly sunny</q-item-label>
+            <q-item-label class="text-h5">{{location}}</q-item-label>
+            <q-item-label class="text-subtitle1 text-weight-thin" lines="1"> {{current?.weather[0]?.main}} </q-item-label>
           </q-item-section>
         </q-item>
 
-        <div class="row q-px-md">
-          <item label="23&deg;C" icon="http://openweathermap.org/img/wn/10d@2x.png" :image="true" />
+        <div class="row">
+          <item :label="`${current?.currentTemp}&deg;C`" :icon="`${iconsUrl}${current?.weather[0]?.icon}@4x.png`" :image="true" />
 
-          <item label="23&deg;C" icon="cloud_upload" caption="Max for Today" />
+          <item :label="`${current?.temp?.max}&deg;C`" icon="cloud_upload" caption="Max" />
 
-          <item label="19&deg;C" icon="cloud_download" caption="Min for Today" />
+          <item :label="`${current?.temp?.min}19&deg;C`" icon="cloud_download" caption="Min" />
         </div>
       </q-card-section>
 
@@ -21,31 +21,32 @@
         <q-space />
         <q-btn
           color="grey"
-          round
           flat
           dense
           :icon="expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
           @click="expanded = !expanded"
-        />
+        >
+          See details
+        </q-btn>
       </q-card-actions>
 
       <q-slide-transition>
         <div v-show="expanded">
           <q-separator />
 
-          <q-card-section class="q-px-md">
+          <q-card-section>
             <div class="row">
-              <item label="23 km/h" icon="send" caption="Wind Speed" />
+              <item :label="`${current?.wind_speed} m/s`" icon="send" caption="Wind Speed" />
 
-              <item label="48%" icon="water_drop" caption="Humidity" />
+              <item :label="`${current?.humidity} %`" icon="water_drop" caption="Humidity" />
 
-              <item label="1016hPa" icon="vertical_align_center" caption="Pressure" />
+              <item :label="`${current?.pressure}hPa`" icon="vertical_align_center" caption="Pressure" />
             </div>
 
             <div class="row">
-              <item label="06:00AM" icon="brightness_low" caption="Sunrise Time" />
+              <item :label="formatDate(current?.sunrise)" icon="brightness_low" caption="Sunrise Time" />
 
-              <item label="06:00PM" icon="brightness_4" caption="Sunset Time" />
+              <item :label="formatDate(current?.sunset)" icon="brightness_4" caption="Sunset Time" />
             </div>
           </q-card-section>
         </div>
@@ -58,11 +59,21 @@ import { ref } from '@vue/reactivity'
 import Item from './Item.vue'
 export default {
   components: { Item },
-  props: ['location'],
+  props: ['location', 'current'],
   setup () {
     const expanded = ref(false)
+    const iconsUrl = ref(process.env.VUE_APP_OPENWEATHER_ICONS_URL)
 
-    return { expanded }
+    const formatDate = (date) => {
+      const formatedDate = new Date(date * 1000)
+      return formatedDate.getHours() + ':' + formatedDate.getMinutes()
+    }
+
+    return {
+      expanded,
+      iconsUrl,
+      formatDate
+    }
   }
 }
 </script>
