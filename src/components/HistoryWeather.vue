@@ -1,20 +1,8 @@
 <template>
   <div v-if="loading">
-    <q-card class="full-height q-my-sm">
-      <q-item>
-        <q-item-section>
-          <q-item-label>
-            <q-skeleton type="text" />
-          </q-item-label>
-          <q-item-label caption>
-            <q-skeleton type="text" />
-          </q-item-label>
-        </q-item-section>
-      </q-item>
-
-      <q-skeleton height="200px" square />
-    </q-card>
+    <skeleton />
   </div>
+
   <q-card v-else class="full-height q-my-sm">
     <q-card-section>
       <div class="text-h6 q-px-md">{{title}}</div>
@@ -27,6 +15,7 @@
           :image="true"
         />
       </div>
+
       <div v-else>
         <item
           v-for="(item, index) in history"
@@ -42,16 +31,17 @@
 
 <script>
 import { ref } from '@vue/reactivity'
-import Item from './Item.vue'
+import Item from './Item'
+import Skeleton from './Skeleton'
 export default {
-  components: { Item },
+  components: { Item, Skeleton },
   props: ['history', 'title', 'past', 'loading'],
   setup () {
     const weekday = ref(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])
     const iconsUrl = ref(process.env.VUE_APP_OPENWEATHER_ICONS_URL)
 
     const getDay = (date) => {
-      const formatedDate = new Date(date * 1000)
+      const formatedDate = new Date(date * 1000) // convert unix timestamp to js timestamp and generate a new Data
       return weekday.value[formatedDate.getDay()]
     }
 

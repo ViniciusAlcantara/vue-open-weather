@@ -4,10 +4,13 @@
       color="primary"
       type="text"
       required
+      :loading="loading"
+      clearable
       v-model="location"
       class="autocomplete-adress"
       minlength="3"
       :label="label"
+      @clear="clear"
       ref="autocomplete"
       :hint="hint"
       lazy-rules
@@ -25,9 +28,10 @@ export default {
     const autocompleteA = ref(null)
     const autocomplete = ref(null)
     const location = ref(props.address)
-    const loader = new Loader({
+    const loading = ref(false)
+    const loader = new Loader({ // loads google maps script
       apiKey: process.env.VUE_APP_MAPS_KEY,
-      libraries: ['places', 'geometry']
+      libraries: ['places', 'geometry', 'geocoder']
     })
 
     onMounted(async () => {
@@ -36,29 +40,56 @@ export default {
     })
 
     const autocompleteInit = () => {
-      autocompleteA.value = new window.google.maps.places.Autocomplete(
+      autocompleteA.value = new window.google.maps.places.Autocomplete( // initiate google maps autocomplete
         (autocomplete.value.getNativeElement()),
         { types: ['geocode'] }
       )
 
       autocompleteA.value.addListener('place_changed', setLocation)
+      currentLocation()
     }
 
-    const setLocation = () => {
+    const currentLocation = () => {
+      loading.value = true
+      window.navigator.geolocation.getCurrentPosition(res => {
+        const geocoder = new window.google.maps.Geocoder()
+        const lat = res.coords.latitude
+        const lng = res.coords.longitude
+        geocoder.geocode({ latLng: { lat, lng } },
+          (results, status) => {
+            loading.value = false
+            // This is checking to see if the Geoeode Status is OK before proceeding
+            if (status === window.google.maps.GeocoderStatus.OK) {
+              location.value = results[0].formatted_address
+              updateParentLocation(lat, lng)
+            }
+          })
+      })
+    }
+
+    const setLocation = () => { // executed when place change
       const place = autocompleteA.value.getPlace()
 
       location.value = place.formatted_address
 
-      const evtData = {
-        location: location.value,
-        locationLat: place.geometry.location.lat(),
-        locationLng: place.geometry.location.lng()
-      }
-
-      context.emit('place', evtData)
+      updateParentLocation(place.geometry.location.lat(), place.geometry.location.lng())
     }
 
-    return { location, autocomplete, autocompleteA }
+    const updateParentLocation = (lat, lng) => {
+      const evtData = {
+        location: location.value,
+        locationLat: lat,
+        locationLng: lng
+      }
+
+      context.emit('place', evtData) // send data to parent
+    }
+
+    const clear = () => {
+      context.emit('clear')
+    }
+
+    return { location, autocomplete, autocompleteA, clear, loading }
   }
 }
 </script>

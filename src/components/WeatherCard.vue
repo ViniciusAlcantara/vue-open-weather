@@ -1,32 +1,6 @@
 <template>
   <div v-if="loading">
-    <q-card class="q-mx-xs">
-      <q-item>
-        <q-item-section>
-          <q-item-label>
-            <q-skeleton type="text" />
-          </q-item-label>
-          <q-item-label caption>
-            <q-skeleton type="text" />
-          </q-item-label>
-        </q-item-section>
-      </q-item>
-
-      <q-item>
-        <q-item-section>
-          <q-item-label>
-            <q-skeleton type="text" />
-          </q-item-label>
-          <q-item-label caption>
-            <q-skeleton type="text" />
-          </q-item-label>
-        </q-item-section>
-      </q-item>
-
-      <q-card-actions align="right" class="q-gutter-md">
-        <q-skeleton type="QBtn" />
-      </q-card-actions>
-    </q-card>
+    <skeleton weather />
   </div>
 
   <q-card v-else class="q-mx-xs">
@@ -34,11 +8,11 @@
       <q-item v-ripple>
         <q-item-section>
           <q-item-label class="text-subtitle1 text-weight-thin">{{location}}</q-item-label>
-          <q-item-label class="text-h6" lines="1"> {{current?.weather[0]?.main}}: {{current?.weather[0]?.description}}</q-item-label>
+          <q-item-label class="text-h6" lines="1"> {{current?.weather[0]?.main}}: {{titleCase(current?.weather[0]?.description)}}</q-item-label>
         </q-item-section>
       </q-item>
 
-      <div class="row flex justify-between">
+      <div :class="`${$q.screen.lt.md ? '' : 'row flex justify-between'}`">
         <item :label="`${current?.currentTemp}&deg;C`" :icon="`${iconsUrl}${current?.weather[0]?.icon}@4x.png`" :image="true" />
 
         <item :label="`${current?.temp?.max}&deg;C`" icon="arrow_upward" caption="Max" color="red" />
@@ -65,7 +39,7 @@
         <q-separator />
 
         <q-card-section>
-          <div class="row flex justify-between">
+          <div :class="`${$q.screen.lt.md ? '' : 'row flex justify-between'}`">
             <item :label="`${current?.wind_speed} m/s`" icon="send" caption="Wind Speed" />
 
             <item :label="`${current?.humidity} %`" icon="water_drop" caption="Humidity" />
@@ -85,22 +59,38 @@
 <script>
 import { ref } from '@vue/reactivity'
 import Item from './Item.vue'
+import Skeleton from './Skeleton'
 export default {
-  components: { Item },
+  components: { Item, Skeleton },
   props: ['location', 'current', 'loading'],
   setup () {
     const expanded = ref(false)
     const iconsUrl = ref(process.env.VUE_APP_OPENWEATHER_ICONS_URL)
 
     const formatDate = (date) => {
-      const formatedDate = new Date(date * 1000)
+      const formatedDate = new Date(date * 1000) // convert unix timestamp to js timestamp and generate a new Data
       return formatedDate.getHours() + ':' + formatedDate.getMinutes()
+    }
+
+    const titleCase = (str) => {
+      if (!str) return ''
+
+      const strs = str.split(' ')
+
+      const titleCase = strs.map(s => {
+        const title = s.split('')
+        title[0] = title[0].toUpperCase()
+        return title.join('')
+      })
+
+      return titleCase.join(' ')
     }
 
     return {
       expanded,
       iconsUrl,
-      formatDate
+      formatDate,
+      titleCase
     }
   }
 }
