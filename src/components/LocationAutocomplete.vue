@@ -16,27 +16,8 @@
 
 <script>
 import { ref } from '@vue/reactivity'
-import { watch } from '@vue/runtime-core'
-// Add google map script if not exist; if already exist, return true
-window.checkAndAttachMapScript = function (callback) {
-  const scriptId = 'map-api-script'
-  const mapAlreadyAttached = !!document.getElementById(scriptId)
-
-  if (mapAlreadyAttached) {
-    if (window.google) { // Script attached but may not finished loading; so check for 'google' object.
-      callback()
-    }
-  } else {
-    window.mapApiInitialized = callback
-
-    const script = document.createElement('script')
-    script.id = scriptId
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.VUE_APP_MAPS_KEY}&libraries=places,geometry&callback=mapApiInitialized`
-    document.body.appendChild(script)
-  }
-
-  return mapAlreadyAttached
-}
+import { Loader } from '@googlemaps/js-api-loader'
+import { onMounted } from '@vue/runtime-core'
 
 export default {
   props: ['hint', 'rules', 'address', 'label'],
@@ -44,9 +25,14 @@ export default {
     const autocompleteA = ref(null)
     const autocomplete = ref(null)
     const location = ref(props.address)
+    const loader = new Loader({
+      apiKey: process.env.VUE_APP_MAPS_KEY,
+      libraries: ['places', 'geometry']
+    })
 
-    watch(autocomplete, (autocomplete, oldAutocomplete) => {
-      if (autocomplete && !oldAutocomplete) window.checkAndAttachMapScript(autocompleteInit)
+    onMounted(async () => {
+      await loader.load()
+      autocompleteInit()
     })
 
     const autocompleteInit = () => {

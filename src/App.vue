@@ -11,14 +11,20 @@
       </div>
       <div class="row" v-if="location">
         <div class="col-12 col-md-6 col-lg-6 col-xl-6 q-pa-sm">
-          <weather-card :location="location" :current="currentWeather" />
+          <weather-card :location="location" :current="currentWeather" :loading="loading" />
 
-          <history-weather title="Next 7 days" :history="nextDaysWeather" />
+          <div class="row">
+            <div class="col-12 col-md-6 col-lg-6 col-xl-6 q-pa-xs">
+              <history-weather title="Next 7 days" :history="nextDaysWeather" :loading="loading" />
+            </div>
 
-          <history-weather title="Last 5 days" :history="historyWeatherInfo" :past="true" />
+            <div class="col-12 col-md-6 col-lg-6 col-xl-6 q-pa-xs">
+              <history-weather title="Last 5 days" :history="historyWeatherInfo" :past="true" :loading="loading" />
+            </div>
+          </div>
         </div>
         <div class="col-12 col-md-6 col-lg-6 col-xl-6 q-pa-sm">
-          <!-- <Map :lat="lat" :lng="lng" /> -->
+          <Map :lat="lat" :lng="lng" :loading="loading" />
         </div>
       </div>
     </q-page-container>
@@ -28,7 +34,7 @@
 <script>
 import { inject, ref } from 'vue'
 import LocationAutocomplete from './components/LocationAutocomplete'
-// import Map from './components/Map.vue'
+import Map from './components/Map.vue'
 import WeatherCard from './components/WeatherCard.vue'
 import HistoryWeather from './components/HistoryWeather.vue'
 
@@ -36,7 +42,7 @@ export default {
   name: 'Home',
   components: {
     LocationAutocomplete,
-    // Map,
+    Map,
     WeatherCard,
     HistoryWeather
   },
@@ -49,6 +55,8 @@ export default {
     const todayWeather = ref(null)
     const nextDaysWeather = ref([])
     const historyWeatherInfo = ref([])
+    const loading = ref(false)
+    const error = ref(null)
 
     const axios = inject('axios') // inject axios
 
@@ -62,6 +70,7 @@ export default {
 
     const getWeatherInfo = async () => {
       try {
+        loading.value = true
         const weatherInfo = await axios.get(`${process.env.VUE_APP_OPENWEATHER_URL}/onecall?lat=${lat.value}&lon=${lng.value}&exclude=minutely,hourly&units=metric&appid=${process.env.VUE_APP_OPENWEATHER_KEY}`)
 
         const { daily, current } = weatherInfo.data
@@ -78,11 +87,12 @@ export default {
 
         const promisesResult = await Promise.all(promises)
         historyWeatherInfo.value = promisesResult.map(p => p.data?.current)
-
-        console.log(historyWeatherInfo.value)
-      } catch (error) {
+      } catch (err) {
         // TODO add error treatment
-        console.log(error)
+        console.log(err)
+        error.value = err.message
+      } finally {
+        loading.value = false
       }
     }
 
@@ -93,6 +103,7 @@ export default {
       lng,
       currentWeather,
       historyWeatherInfo,
+      loading,
       todayWeather,
       nextDaysWeather,
       setLocationInfo
